@@ -51,43 +51,34 @@ st.title("MooseBot Chat")
 if 'messages' not in st.session_state:
     st.session_state.messages = []
 
-# Display existing messages
 for message in st.session_state.messages:
     with st.container():
-        # Display message with custom CSS
         if message['role'] == 'user':
             st.markdown(f"<div class='userMessage'>👤 {message['content']}</div>", unsafe_allow_html=True)
         else:
-            st.markdown(f"<div class='assistantMessage'>🤖 {message['content']}</div>", unsafe_allow_html=True)        
+            st.markdown(f"<div class='assistantMessage'>🤖 {message['content']}</div>", unsafe_allow_html=True)
 
-# Prepare the input form
-user_input = st.text_input("You:", key="input")
+user_input = st.text_input("You:", "")
 
-# When the user submits a message
-if st.button("Send", key="send") and user_input:
-    # Add user message to the chat history
+if st.button("Send") and user_input:
     st.session_state.messages.append({"role": "user", "content": user_input})
     
-    # Prepare a placeholder for the assistant message
+    # Prepare a placeholder for streaming responses
     placeholder = st.empty()
-    full_response = ""
     
-    # Stream responses
+    # Iterate over streamed responses
     for part in chat_logic.get_response_stream(user_input):
-        full_response += part
-        placeholder.markdown(f"<div class='assistantMessage'>🤖 {full_response}▌</div>", unsafe_allow_html=True)
+        # Append each part of the response to the messages
+        st.session_state.messages.append({"role": "assistant", "content": part})
+        
+        # Clear the previous messages and redraw all messages including the new part
+        placeholder.empty()  # Clear previous content
+        with placeholder.container():
+            for message in st.session_state.messages:
+                if message['role'] == 'user':
+                    st.markdown(f"<div class='userMessage'>👤 {message['content']}</div>", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"<div class='assistantMessage'>🤖 {message['content']}</div>", unsafe_allow_html=True)
 
-    # Finalize streaming and display
-    placeholder.markdown(f"<div class='assistantMessage'>🤖 {full_response}</div>", unsafe_allow_html=True)
-    
-    # Append the full response to session state
-    st.session_state.messages.append({"role": "assistant", "content": full_response})
-
-    # Clear the input box after sending the message
-    # This is done by deleting the specific key from the session state
-    del st.session_state["input"]
-
-    # Move the input form to the bottom of the messages
-    st.experimental_rerun()
-
-
+    # Optionally, call st.experimental_rerun() to refresh the page if needed
+    # st.experimental_rerun()

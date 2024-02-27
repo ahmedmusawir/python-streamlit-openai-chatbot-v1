@@ -60,15 +60,12 @@ for message in st.session_state.messages:
         else:
             st.markdown(f"<div class='assistantMessage'>🤖 {message['content']}</div>", unsafe_allow_html=True)        
 
-# Prepare the input form
-user_input = st.text_input("You:", key="input")
+user_input = st.text_input("You:", "")
 
-# When the user submits a message
-if st.button("Send", key="send") and user_input:
-    # Add user message to the chat history
+if st.button("Send") and user_input:
     st.session_state.messages.append({"role": "user", "content": user_input})
     
-    # Prepare a placeholder for the assistant message
+    # Prepare a placeholder for streaming responses
     placeholder = st.empty()
     full_response = ""
     
@@ -80,14 +77,8 @@ if st.button("Send", key="send") and user_input:
     # Finalize streaming and display
     placeholder.markdown(f"<div class='assistantMessage'>🤖 {full_response}</div>", unsafe_allow_html=True)
     
-    # Append the full response to session state
+    # Append the full response to session state without clearing the placeholder
     st.session_state.messages.append({"role": "assistant", "content": full_response})
 
-    # Clear the input box after sending the message
-    # This is done by deleting the specific key from the session state
-    del st.session_state["input"]
-
-    # Move the input form to the bottom of the messages
-    st.experimental_rerun()
-
-
+    # Refresh to show the updated conversation without clearing the streamed message
+    # st.experimental_rerun()  # Uncomment if necessary
